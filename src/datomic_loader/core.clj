@@ -1,18 +1,32 @@
 (ns datomic-loader.core
-  (:require [datomic.client.api :as d]
-            [environ.core :refer [env]])
+  (:require [datomic-loader.client :refer [conn->]]
+            [datomic-loader.schema :refer [schema]]
+            [datomic-loader.load :refer [facts->types
+                                         facts->entities
+                                         facts->datums]]
+            [datomic-loader.parse :as parse]
+            [datomic.client.api :as d]
+            [clojure.java.io :as io])
   (:gen-class))
 
-;; (def cfg {:server-type :peer-server
-;;           :access-key (env :access-key)
-;;           :secret (env :secret)
-;;           :endpoint (env :server-url)})
 
-;; (def client (d/client cfg))
+(def conn (conn->))
 
-;; (def conn (d/connect client {:db-name (env :db-name)}))
+
+(defn file-data
+  [filePath]
+  (with-open
+    [reader (io/reader filePath)]
+    (->> reader
+         parse/parse-csv
+         ((juxt facts->types facts->entities facts->datums))
+         (apply concat)
+         doall)))
+
+
+(d/transact conn {:tx-data (file-data "./file.csv")})
+
 
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello World"))
+  (file->data "./file.csv"))
