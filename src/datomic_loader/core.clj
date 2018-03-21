@@ -4,29 +4,21 @@
             [datomic-loader.load :refer [facts->types
                                          facts->entities
                                          facts->datums]]
-            [datomic-loader.parse :as parse]
-            [datomic.client.api :as d]
-            [clojure.java.io :as io])
+            [datomic-loader.parse :as parse])
   (:gen-class))
-
-
-(def conn (conn->))
 
 
 (defn file-data
   [filePath]
-  (with-open
-    [reader (io/reader filePath)]
+  (with-open [reader (io/reader filePath)]
     (->> reader
          parse/parse-csv
          ((juxt facts->types facts->entities facts->datums))
          (apply concat)
          doall)))
 
-
-(d/transact conn {:tx-data (file-data "./file.csv")})
-
-
 (defn -main
   [& args]
-  (file->data "./file.csv"))
+  (let [conn (conn->)]
+    (d/transact conn {:tx-data (schema)})
+    (d/transact conn {:tx-data (file-data "./file.csv")})))

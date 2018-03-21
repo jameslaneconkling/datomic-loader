@@ -30,12 +30,3 @@
   (map #(hash-map :db/id (:from %)
                   :tw/:relationship (:to %))
        facts))
-
-;; (with-open
-;;   [reader (io/reader "./file.csv")]
-;;   (->> reader
-;;        parse/parse-csv
-;;        (take 30)
-;;        ((juxt facts->types facts->entities facts->datums))
-;;        (apply concat)
-;;        doall))
